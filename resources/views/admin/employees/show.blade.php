@@ -3,7 +3,7 @@
 @section('header_title', 'Employee 360° CRM Profile')
 
 @section('content')
-    <div class="max-w-7xl mx-auto space-y-5">
+    <div class="max-w-7xl mx-auto space-y-5 pb-12">
         <!-- Top Action Bar -->
         <div class="flex flex-wrap items-center justify-between gap-3">
             <a href="{{ route('admin.employees.index') }}"
@@ -22,12 +22,12 @@
             </div>
         </div>
 
-        <!-- Hero 360° Header Card -->
+        <!-- Hero 360 Header Card -->
         <div
             class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 flex flex-col lg:flex-row gap-4 items-center lg:items-start justify-between">
             <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
-                <div
-                    class="w-24 h-24 rounded-2xl bg-indigo-100 border-4 border-slate-50 shadow flex items-center justify-center text-3xl font-bold text-indigo-600 shrink-0 overflow-hidden">
+                <div onclick="openPhotoLightbox()"
+                    class="cursor-pointer hover:opacity-90 transition-opacity w-24 h-24 rounded-2xl bg-indigo-100 border-4 border-slate-50 shadow flex items-center justify-center text-3xl font-bold text-indigo-600 shrink-0 overflow-hidden">
                     @if ($employee->profile_photo)
                         <img src="{{ asset($employee->profile_photo) }}" class="w-full h-full object-cover">
                     @else
@@ -66,8 +66,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Mini Attendance Summary Pill -->
             <div
                 class="grid grid-cols-4 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100 text-center w-full lg:w-auto">
                 <div class="px-3">
@@ -89,7 +87,7 @@
             </div>
         </div>
 
-        <!-- 360° Navigation Tabs -->
+        <!-- 360 Navigation Tabs -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-1.5 flex flex-wrap gap-2">
             <button onclick="switchCrmTab('overview')" id="crm-tab-overview"
                 class="crm-tab px-4 py-2 rounded-lg text-sm font-bold bg-indigo-600 text-white transition-all">
@@ -109,103 +107,153 @@
             </button>
         </div>
 
-        <!-- TAB 1: 360° OVERVIEW -->
-        <div id="crm-content-overview" class="crm-content grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <!-- Professional & Skills -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-4">
-                <h3 class="font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-briefcase text-indigo-600"></i> Professional & Compensation
-                </h3>
-                <div class="space-y-2.5 text-sm">
-                    <div class="flex justify-between"><span class="text-slate-500">Employment Type</span><span
-                            class="font-bold text-slate-800">{{ $employee->employment_type }}</span></div>
-                    <div class="flex justify-between"><span class="text-slate-500">Annual CTC / Salary</span><span
-                            class="font-bold text-emerald-600">{{ $employee->salary_ctc ? '₹' . number_format($employee->salary_ctc, 2) : 'Not Disclosed' }}</span>
-                    </div>
-                    <div class="flex justify-between"><span class="text-slate-500">Assigned Shift</span><span
-                            class="font-bold text-slate-800">{{ $employee->shift->shift_name ?? 'Unassigned' }}</span>
-                    </div>
-                    <div class="pt-2 border-t border-slate-100">
-                        <p class="text-xs font-bold text-slate-400 uppercase mb-1.5">Skills & Competencies</p>
-                        @if ($employee->skills)
-                            <div class="flex flex-wrap gap-1.5">
-                                @foreach (explode(',', $employee->skills) as $skill)
-                                    <span
-                                        class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-semibold">{{ trim($skill) }}</span>
-                                @endforeach
-                            </div>
-                        @else
-                            <p class="text-xs text-slate-400 italic">No skills listed yet.</p>
-                        @endif
-                    </div>
-                    <div class="pt-2 border-t border-slate-100">
-                        <p class="text-xs font-bold text-slate-400 uppercase mb-1">Previous Experience</p>
-                        <p class="text-xs text-slate-600 leading-relaxed">
-                            {{ $employee->previous_experience ?: 'No prior experience notes recorded.' }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Emergency Contact -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-4">
-                <h3 class="font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-truck-medical text-rose-500"></i> Emergency Contact
-                </h3>
-                <div class="space-y-3 text-sm">
-                    <div class="flex justify-between"><span class="text-slate-500">Contact Person</span><span
-                            class="font-bold text-slate-800">{{ $employee->emergency_contact_name ?: 'Not Provided' }}</span>
-                    </div>
-                    <div class="flex justify-between"><span class="text-slate-500">Relationship</span><span
-                            class="font-semibold text-slate-700">{{ $employee->emergency_contact_relation ?: '--' }}</span>
-                    </div>
-                    <div class="flex justify-between"><span class="text-slate-500">Emergency Phone</span><span
-                            class="font-bold text-rose-600">{{ $employee->emergency_contact_phone ?: '--' }}</span></div>
-                </div>
-
-                <h3 class="font-bold text-slate-800 border-b border-slate-100 pb-2 pt-4 flex items-center gap-2">
-                    <i class="fa-solid fa-scale-balanced text-teal-600"></i> Leave Balances
-                </h3>
-                <div class="grid grid-cols-2 gap-2">
-                    @forelse($employee->leaveBalances as $bal)
-                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
-                            <span class="text-xs font-semibold text-slate-600">{{ $bal->leaveType->name }}</span>
-                            <span class="text-sm font-extrabold text-indigo-600">{{ (float) $bal->balance }}</span>
+        <!-- TAB 1: 360 OVERVIEW -->
+        <div id="crm-content-overview" class="crm-content space-y-4">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <!-- Professional & Skills -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-4">
+                    <h3 class="font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-briefcase text-indigo-600"></i> Professional Profile
+                    </h3>
+                    <div class="space-y-2.5 text-sm">
+                        <div class="flex justify-between"><span class="text-slate-500">Employment Type</span><span
+                                class="font-bold text-slate-800">{{ $employee->employment_type }}</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Assigned Shift</span><span
+                                class="font-bold text-slate-800">{{ $employee->shift->shift_name ?? 'Unassigned' }}</span>
                         </div>
-                    @empty
-                        <p class="text-xs text-slate-400 col-span-2">No leave balances allocated.</p>
-                    @endforelse
+                        <div class="pt-2 border-t border-slate-100">
+                            <p class="text-xs font-bold text-slate-400 uppercase mb-1.5">Skills & Competencies</p>
+                            @if ($employee->skills)
+                                <div class="flex flex-wrap gap-1.5">
+                                    @foreach (explode(',', $employee->skills) as $skill)
+                                        <span
+                                            class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-semibold">{{ trim($skill) }}</span>
+                                    @endforeach
+                                </div>
+                            @else
+                                <p class="text-xs text-slate-400 italic">No skills listed yet.</p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Identity & Bank Details -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-4">
+                    <h3 class="font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-building-columns text-emerald-600"></i> Identity & Bank
+                    </h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between"><span class="text-slate-500">PAN</span><span
+                                class="font-mono font-bold text-slate-800 uppercase">{{ $employee->pan_number ?: '--' }}</span>
+                        </div>
+                        <div class="flex justify-between"><span class="text-slate-500">Aadhaar</span><span
+                                class="font-mono font-bold text-slate-800">{{ $employee->aadhaar_number ?: '--' }}</span>
+                        </div>
+                        <div class="flex justify-between"><span class="text-slate-500">PF UAN</span><span
+                                class="font-mono font-bold text-slate-800">{{ $employee->pf_uan ?: '--' }}</span></div>
+                    </div>
+                    <div class="space-y-3 text-sm pt-3 border-t border-slate-100">
+                        <div class="flex justify-between"><span class="text-slate-500">Bank Name</span><span
+                                class="font-bold text-slate-800">{{ $employee->bank_name ?: '--' }}</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Account No.</span><span
+                                class="font-mono font-semibold text-slate-700">{{ $employee->bank_account_no ?: '--' }}</span>
+                        </div>
+                        <div class="flex justify-between"><span class="text-slate-500">IFSC Code</span><span
+                                class="font-mono font-semibold text-slate-700 uppercase">{{ $employee->bank_ifsc ?: '--' }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Emergency Contact -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-4">
+                    <h3 class="font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-truck-medical text-rose-500"></i> Emergency Contact
+                    </h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between"><span class="text-slate-500">Contact Person</span><span
+                                class="font-bold text-slate-800">{{ $employee->emergency_contact_name ?: 'Not Provided' }}</span>
+                        </div>
+                        <div class="flex justify-between"><span class="text-slate-500">Relationship</span><span
+                                class="font-semibold text-slate-700">{{ $employee->emergency_contact_relation ?: '--' }}</span>
+                        </div>
+                        <div class="flex justify-between"><span class="text-slate-500">Emergency Phone</span><span
+                                class="font-bold text-rose-600">{{ $employee->emergency_contact_phone ?: '--' }}</span>
+                        </div>
+                    </div>
+                    <h3 class="font-bold text-slate-800 border-b border-slate-100 pb-2 pt-4 flex items-center gap-2">
+                        <i class="fa-solid fa-scale-balanced text-teal-600"></i> Leave Balances
+                    </h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        @forelse($employee->leaveBalances as $bal)
+                            <div
+                                class="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
+                                <span class="text-xs font-semibold text-slate-600">{{ $bal->leaveType->name }}</span>
+                                <span class="text-sm font-extrabold text-indigo-600">{{ (float) $bal->balance }}</span>
+                            </div>
+                        @empty
+                            <p class="text-xs text-slate-400 col-span-2">No leave balances allocated.</p>
+                        @endforelse
+                    </div>
                 </div>
             </div>
 
-            <!-- Recent Leave History -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-4">
-                <h3 class="font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-plane-departure text-amber-500"></i> Recent Leaves
-                </h3>
-                <div class="space-y-2.5">
-                    @forelse($recentLeaves as $leave)
-                        <div
-                            class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs flex justify-between items-center">
-                            <div>
-                                <p class="font-bold text-slate-800">{{ $leave->leaveType->name }}
-                                    ({{ (float) $leave->days }}d)
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                <!-- Education History List -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-4">
+                    <h3 class="font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-graduation-cap text-amber-500"></i> Education History
+                    </h3>
+                    <div class="space-y-4 relative border-l border-slate-200 ml-2">
+                        @forelse($employee->educations as $edu)
+                            <div class="pl-4 relative">
+                                <div
+                                    class="absolute w-2.5 h-2.5 bg-amber-400 rounded-full -left-[5px] top-1.5 border-2 border-white">
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-sm">{{ $edu->level }} -
+                                    {{ $edu->specialization }}</h4>
+                                <p class="text-xs text-slate-600 font-semibold">{{ $edu->institution }}</p>
+                                <p class="text-xs text-slate-400">
+                                    {{ $edu->start_year ? \Carbon\Carbon::parse($edu->start_year)->format('M Y') : 'N/A' }}
+                                    -
+                                    {{ $edu->end_year ? \Carbon\Carbon::parse($edu->end_year)->format('M Y') : 'N/A' }}
                                 </p>
-                                <p class="text-slate-500">{{ $leave->start_date->format('d M') }} -
-                                    {{ $leave->end_date->format('d M, Y') }}</p>
                             </div>
-                            <span
-                                class="px-2 py-0.5 rounded-full font-bold {{ $leave->status == 'Approved' ? 'bg-emerald-100 text-emerald-700' : ($leave->status == 'Rejected' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700') }}">
-                                {{ $leave->status }}
-                            </span>
-                        </div>
-                    @empty
-                        <p class="text-xs text-slate-400 italic">No leave requests submitted.</p>
-                    @endforelse
+                        @empty
+                            <p class="pl-4 text-xs text-slate-400 italic">No education details recorded.</p>
+                        @endforelse
+                    </div>
+                </div>
+
+                <!-- Work Experience List -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-4">
+                    <h3 class="font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-business-time text-blue-500"></i> Previous Work Experience
+                    </h3>
+                    <div class="space-y-4 relative border-l border-slate-200 ml-2">
+                        @forelse($employee->experiences as $exp)
+                            <div class="pl-4 relative">
+                                <div
+                                    class="absolute w-2.5 h-2.5 bg-blue-500 rounded-full -left-[5px] top-1.5 border-2 border-white">
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-sm">{{ $exp->job_role }}</h4>
+                                <p class="text-xs text-slate-600 font-semibold">{{ $exp->company_name }}</p>
+                                <p class="text-xs text-slate-400">
+                                    {{ $exp->from_date->format('M Y') }} -
+                                    {{ $exp->to_date ? $exp->to_date->format('M Y') : 'N/A' }}
+                                </p>
+                                @if ($exp->description)
+                                    <p class="text-[11px] text-slate-500 mt-1 italic">{{ $exp->description }}</p>
+                                @endif
+                            </div>
+                        @empty
+                            <p class="pl-4 text-xs text-slate-400 italic">No prior experience recorded.</p>
+                        @endforelse
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- TAB 2: EMPLOYEE 360° TIMELINE -->
+        <!-- TAB 2: EMPLOYEE 360 TIMELINE -->
         <div id="crm-content-timeline" class="crm-content hidden grid grid-cols-1 lg:grid-cols-3 gap-4">
             <!-- Add Milestone Form -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 h-fit">
@@ -246,7 +294,6 @@
                     </button>
                 </form>
             </div>
-
             <!-- Chronological Timeline Feed -->
             <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
                 <h3 class="font-bold text-slate-800 mb-4">Complete Employee Lifecycle Timeline</h3>
@@ -301,10 +348,6 @@
                             <i class="fa-solid fa-ban"></i> Suspended
                         </span>
                     @endif
-                    <a href="{{ route('admin.assets.index') }}"
-                        class="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 transition-colors">
-                        All Inventory
-                    </a>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -316,7 +359,6 @@
                                     class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">{{ $asset->category }}</span>
                                 <h4 class="font-bold text-slate-800 mt-1 pr-12">{{ $asset->asset_name }}</h4>
                             </div>
-                            <!-- Quick Return Form -->
                             <form
                                 action="{{ route('admin.employees.assets.return', ['employee' => $employee->id, 'asset' => $asset->id]) }}"
                                 method="POST"
@@ -331,20 +373,11 @@
                         </div>
                         <p class="text-xs font-mono font-bold text-slate-500">{{ $asset->asset_code }}</p>
                         <p class="text-xs text-slate-500">Serial: {{ $asset->serial_number ?: 'N/A' }} &bull; Condition:
-                            <strong>{{ $asset->condition }}</strong>
-                        </p>
-                        <p class="text-xs text-slate-500">Issued:
-                            {{ $asset->issue_date ? $asset->issue_date->format('d M, Y') : 'N/A' }}</p>
+                            <strong>{{ $asset->condition }}</strong></p>
                     </div>
                 @empty
                     <div class="col-span-3 text-center py-8">
-                        <div
-                            class="w-16 h-16 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <i class="fa-solid fa-laptop text-2xl"></i>
-                        </div>
                         <p class="text-sm font-bold text-slate-600">No assets currently assigned to this employee.</p>
-                        <p class="text-xs text-slate-400 mt-1">Click "Assign Asset" to allocate hardware from available
-                            inventory.</p>
                     </div>
                 @endforelse
             </div>
@@ -359,7 +392,7 @@
                     @csrf
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Document Title *</label>
-                        <input type="text" name="title" required placeholder="e.g. Signed Offer Letter"
+                        <input type="text" name="title" required
                             class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
                     </div>
                     <div>
@@ -368,26 +401,20 @@
                             class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
                             <option value="Offer Letter">Offer Letter</option>
                             <option value="Appointment Letter">Appointment Letter</option>
-                            <option value="NDA / Policy">NDA / Policy</option>
                             <option value="KYC / ID Proof">KYC / ID Proof</option>
-                            <option value="Salary Revision">Salary Revision / Appraisal</option>
-                            <option value="Warning Letter">Warning Letter</option>
-                            <option value="Relieving / Experience">Relieving / Experience Letter</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">File (PDF, JPG, PNG, DOC)
-                            *</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">File *</label>
                         <input type="file" name="document_file" required
                             class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:font-semibold">
                     </div>
                     <button type="submit"
                         class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-sm">
-                        Upload to Vault
+                        Upload
                     </button>
                 </form>
             </div>
-
             <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
                 <h3 class="font-bold text-slate-800 mb-4">Stored HR Documents</h3>
                 <div class="divide-y divide-slate-100">
@@ -400,17 +427,13 @@
                                 </div>
                                 <div>
                                     <p class="font-bold text-slate-800 text-sm">{{ $doc->title }}</p>
-                                    <p class="text-xs text-slate-500">{{ $doc->document_type }} &bull; Uploaded
-                                        {{ $doc->created_at->format('d M, Y') }}</p>
+                                    <p class="text-xs text-slate-500">{{ $doc->document_type }}</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
                                 <a href="{{ asset($doc->file_path) }}" target="_blank"
-                                    class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold">
-                                    <i class="fa-solid fa-download mr-1"></i> View
-                                </a>
-                                <form action="{{ route('admin.employees.documents.destroy', $doc->id) }}" method="POST"
-                                    onsubmit="return confirm('Delete this document?');">
+                                    class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold">View</a>
+                                <form action="{{ route('admin.employees.documents.destroy', $doc->id) }}" method="POST">
                                     @csrf @method('DELETE')
                                     <button class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg text-xs"><i
                                             class="fa-solid fa-trash"></i></button>
@@ -418,12 +441,23 @@
                             </div>
                         </div>
                     @empty
-                        <p class="text-sm text-slate-400 py-6 text-center">No documents uploaded for this employee.</p>
+                        <p class="text-sm text-slate-400 py-6 text-center">No documents uploaded.</p>
                     @endforelse
                 </div>
             </div>
         </div>
     </div>
+
+    @if ($employee->profile_photo)
+        <!-- Photo Lightbox Modal -->
+        <div id="photoLightbox" onclick="closePhotoLightbox()"
+            class="fixed inset-0 z-[100] hidden bg-slate-900/90 backdrop-blur-sm flex items-center justify-center opacity-0 transition-opacity duration-300 cursor-zoom-out">
+            <img id="lightbox-img" src="{{ asset($employee->profile_photo) }}"
+                class="max-w-[90%] max-h-[90vh] rounded-xl shadow-2xl transform scale-95 transition-transform duration-300 object-contain">
+            <button class="absolute top-6 right-6 text-white hover:text-slate-300 text-3xl"><i
+                    class="fa-solid fa-xmark"></i></button>
+        </div>
+    @endif
 
     <!-- Assign Asset Modal -->
     <div id="assignAssetModal"
@@ -444,17 +478,11 @@
                     <select name="asset_id" required
                         class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm">
                         <option value="">-- Choose Available Asset --</option>
-                        @forelse($availableAssets as $availAsset)
+                        @foreach ($availableAssets as $availAsset)
                             <option value="{{ $availAsset->id }}">{{ $availAsset->asset_code }} &bull;
-                                {{ $availAsset->asset_name }} ({{ $availAsset->category }})</option>
-                        @empty
-                            <option value="" disabled>No available assets in inventory.</option>
-                        @endforelse
+                                {{ $availAsset->asset_name }}</option>
+                        @endforeach
                     </select>
-                    @if ($availableAssets->isEmpty())
-                        <p class="text-xs text-amber-600 mt-2"><i class="fa-solid fa-triangle-exclamation"></i> You need
-                            to add new items to the main Asset Inventory first.</p>
-                    @endif
                 </div>
                 <div class="mt-6 flex justify-end gap-3 border-t border-slate-100 pt-4">
                     <button type="button" onclick="closeAssignAssetModal()"
@@ -498,8 +526,24 @@
             }, 300);
         }
 
-        assignModal.addEventListener('click', (e) => {
-            if (e.target === assignModal) closeAssignAssetModal();
-        });
+        function openPhotoLightbox() {
+            const lbox = document.getElementById('photoLightbox');
+            const img = document.getElementById('lightbox-img');
+            if (!lbox) return;
+            lbox.classList.remove('hidden');
+            setTimeout(() => {
+                lbox.classList.remove('opacity-0');
+                img.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closePhotoLightbox() {
+            const lbox = document.getElementById('photoLightbox');
+            const img = document.getElementById('lightbox-img');
+            if (!lbox) return;
+            lbox.classList.add('opacity-0');
+            img.classList.add('scale-95');
+            setTimeout(() => lbox.classList.add('hidden'), 300);
+        }
     </script>
 @endsection

@@ -6,13 +6,14 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Hash; // Added Hash facade
+use Illuminate\Support\Facades\Hash;
 
 class ProfileController extends Controller
 {
     public function index()
     {
-        $employee = Auth::user()->load(['department', 'designation', 'shift']);
+        // Eager load the new relational data
+        $employee = Auth::user()->load(['department', 'designation', 'shift', 'educations', 'experiences']);
         return view('employee.profile', compact('employee'));
     }
 
@@ -20,18 +21,16 @@ class ProfileController extends Controller
     {
         $employee = Auth::user();
 
-        // Added password validation (nullable, minimum 8 characters)
         $request->validate([
-            'emp_name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255', 'unique:employees,email,' . $employee->id],
-            'phone_number' => ['nullable', 'string', 'max:20'],
+            'emp_name'      => ['required', 'string', 'max:255'],
+            'email'         => ['nullable', 'email', 'max:255', 'unique:employees,email,' . $employee->id],
+            'phone_number'  => ['nullable', 'string', 'max:20'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
-            'password' => ['nullable', 'string', 'min:8'], // Password rule
+            'password'      => ['nullable', 'string', 'min:8'],
         ]);
 
         if ($request->hasFile('profile_photo')) {
             $uploadPath = public_path('uploads/profiles');
-
             if (!File::exists($uploadPath)) {
                 File::makeDirectory($uploadPath, 0755, true);
             }
@@ -47,7 +46,6 @@ class ProfileController extends Controller
             $employee->profile_photo = 'uploads/profiles/' . $filename;
         }
 
-        // Check if user provided a new password and hash it
         if ($request->filled('password')) {
             $employee->password = Hash::make($request->password);
         }
@@ -55,7 +53,6 @@ class ProfileController extends Controller
         $employee->emp_name = $request->emp_name;
         $employee->email = $request->email;
         $employee->phone_number = $request->phone_number;
-
         $employee->save();
 
         return back()->with('success', 'Profile updated successfully!');

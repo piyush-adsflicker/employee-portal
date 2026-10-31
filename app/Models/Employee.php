@@ -29,6 +29,12 @@ class Employee extends Authenticatable
         'exit_date',
         'profile_photo',
         'password',
+        'pan_number',
+        'aadhaar_number',
+        'pf_uan',
+        'bank_name',
+        'bank_account_no',
+        'bank_ifsc',
     ];
 
     protected $hidden = [
@@ -85,5 +91,13 @@ class Employee extends Authenticatable
     public function leaveBalances()
     {
         return $this->hasMany(LeaveBalance::class);
+    }
+    public function educations()
+    {
+        return $this->hasMany(EmployeeEducation::class)->orderBy('end_year', 'desc');
+    }
+    public function experiences()
+    {
+        return $this->hasMany(EmployeeExperience::class)->orderBy('from_date', 'desc');
     }
 }

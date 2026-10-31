@@ -185,7 +185,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                                    <td colspan="6" class="px-6 py-12 text-center text-slate-500">
                                         <i class="fa-solid fa-inbox text-3xl mb-3 text-slate-300"></i>
                                         <p>You have not submitted any leave requests.</p>
                                     </td>

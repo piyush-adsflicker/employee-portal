@@ -13,6 +13,7 @@ use App\Models\EmployeeTimeline;
 use App\Models\Shift;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB; // <-- IMPORTED DB FACADE
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 
@@ -30,7 +31,16 @@ class EmployeeController extends Controller
         $designations = Designation::where('is_active', true)->get();
         $shifts       = Shift::all();
 
-        return view('admin.employees.create', compact('departments', 'designations', 'shifts'));
+        // Auto-Generate Employee ID
+        $lastEmployee = Employee::orderBy('id', 'desc')->first();
+        $nextNumber = 1;
+        
+        if ($lastEmployee && preg_match('/EMP-(\d+)/', $lastEmployee->emp_id, $matches)) {
+            $nextNumber = intval($matches[1]) + 1;
+        }
+        $nextEmpId = 'EMP-' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+
+        return view('admin.employees.create', compact('departments', 'designations', 'shifts', 'nextEmpId'));
     }
 
     public function store(Request $request)
@@ -52,22 +62,51 @@ class EmployeeController extends Controller
             'emergency_contact_phone'    => 'nullable|string|max:20',
             'emergency_contact_relation' => 'nullable|string|max:50',
             'password'                   => 'required|string|min:8',
+            
+            'pan_number'                 => 'nullable|string|max:20',
+            'aadhaar_number'             => 'nullable|string|max:20',
+            'pf_uan'                     => 'nullable|string|max:20',
+            'bank_name'                  => 'nullable|string|max:255',
+            'bank_account_no'            => 'nullable|string|max:100',
+            'bank_ifsc'                  => 'nullable|string|max:50',
+
+            // Dynamic Arrays
+            'educations.*.level'         => 'required|string',
+            'educations.*.institution'   => 'required|string',
+            'experiences.*.company_name' => 'required|string',
+            'experiences.*.job_role'     => 'required|string',
+            'experiences.*.from_date'    => 'required|date',
+            'experiences.*.to_date'      => 'required|date|after_or_equal:experiences.*.from_date', // MANDATORY
         ]);
 
-        $data              = $request->except('password');
+        $data              = $request->except(['password', 'educations', 'experiences']);
         $data['password']  = Hash::make($request->password);
         $data['is_active'] = true;
 
-        $employee = Employee::create($data);
+        // WRAPPED IN DATABASE TRANSACTION
+        DB::transaction(function () use ($request, $data) {
+            $employee = Employee::create($data);
 
-        // Automatically create Joining Milestone in 360° Timeline
-        EmployeeTimeline::create([
-            'employee_id' => $employee->id,
-            'event_type'  => 'Joining',
-            'title'       => 'Joined the Organization',
-            'description' => 'Joined as ' . ($employee->designation->designation_name ?? 'Staff') . ' (' . $employee->employment_type . ').',
-            'event_date'  => $employee->joining_date ?? now(),
-        ]);
+            if ($request->has('educations')) {
+                foreach ($request->educations as $edu) {
+                    $employee->educations()->create($edu);
+                }
+            }
+
+            if ($request->has('experiences')) {
+                foreach ($request->experiences as $exp) {
+                    $employee->experiences()->create($exp);
+                }
+            }
+
+            EmployeeTimeline::create([
+                'employee_id' => $employee->id,
+                'event_type'  => 'Joining',
+                'title'       => 'Joined the Organization',
+                'description' => 'Joined as ' . ($employee->designation->designation_name ?? 'Staff') . ' (' . $employee->employment_type . ').',
+                'event_date'  => $employee->joining_date ?? now(),
+            ]);
+        });
 
         return redirect()->route('admin.employees.index')->with('success', 'Employee registered successfully!');
     }
@@ -75,16 +114,11 @@ class EmployeeController extends Controller
     public function show(Employee $employee)
     {
         $employee->load([
-            'department',
-            'designation',
-            'shift',
-            'assets',
-            'documents',
-            'timelines',
-            'leaveBalances.leaveType',
+            'department', 'designation', 'shift', 'assets',
+            'documents', 'timelines', 'leaveBalances.leaveType',
+            'educations', 'experiences'
         ]);
 
-        // Attendance Summary for 360° View
         $attendanceStats = [
             'present' => $employee->attendances()->where('status', 'Present')->count(),
             'late'    => $employee->attendances()->where('status', 'Late')->count(),
@@ -94,8 +128,6 @@ class EmployeeController extends Controller
 
         $recentLeaves = $employee->leaveRequests()->with('leaveType')->latest()->take(5)->get();
         $availableAssets = Asset::where('status', 'Available')->get();
-
-        // Build Unified 360° Timeline Feed (Custom Events + Approved Leaves)
         $unifiedTimeline = collect();
 
         foreach ($employee->timelines as $item) {
@@ -122,13 +154,7 @@ class EmployeeController extends Controller
 
         $unifiedTimeline = $unifiedTimeline->sortByDesc('date')->values();
 
-        return view('admin.employees.show', compact(
-            'employee',
-            'attendanceStats',
-            'recentLeaves',
-            'availableAssets',
-            'unifiedTimeline'
-        ));
+        return view('admin.employees.show', compact('employee', 'attendanceStats', 'recentLeaves', 'availableAssets', 'unifiedTimeline'));
     }
 
     public function edit(Employee $employee)
@@ -136,14 +162,16 @@ class EmployeeController extends Controller
         $departments  = Department::where('is_active', true)->get();
         $designations = Designation::where('is_active', true)->get();
         $shifts       = Shift::all();
+        
+        $employee->load(['educations', 'experiences']);
 
         return view('admin.employees.edit', compact('employee', 'departments', 'designations', 'shifts'));
     }
 
     public function update(Request $request, Employee $employee)
     {
+        // Notice: 'emp_id' is missing from validation because it is strictly readonly
         $request->validate([
-            'emp_id'                     => 'required|string|max:50|unique:employees,emp_id,' . $employee->id,
             'emp_name'                   => 'required|string|max:255',
             'email'                      => 'nullable|email|max:255|unique:employees,email,' . $employee->id,
             'phone_number'               => 'nullable|string|max:20',
@@ -161,15 +189,62 @@ class EmployeeController extends Controller
             'exit_date'                  => 'nullable|date',
             'is_active'                  => 'required|boolean',
             'password'                   => 'nullable|string|min:8',
+            
+            'pan_number'                 => 'nullable|string|max:20',
+            'aadhaar_number'             => 'nullable|string|max:20',
+            'pf_uan'                     => 'nullable|string|max:20',
+            'bank_name'                  => 'nullable|string|max:255',
+            'bank_account_no'            => 'nullable|string|max:100',
+            'bank_ifsc'                  => 'nullable|string|max:50',
+
+            // Allow optional ID for syncing
+            'educations.*.id'            => 'nullable|integer|exists:employee_educations,id',
+            'educations.*.level'         => 'required|string',
+            'educations.*.institution'   => 'required|string',
+            'experiences.*.id'           => 'nullable|integer|exists:employee_experiences,id',
+            'experiences.*.company_name' => 'required|string',
+            'experiences.*.job_role'     => 'required|string',
+            'experiences.*.from_date'    => 'required|date',
+            'experiences.*.to_date'      => 'required|date|after_or_equal:experiences.*.from_date', // MANDATORY
         ]);
 
-        $data = $request->except('password');
-
+        $data = $request->except(['password', 'educations', 'experiences', 'emp_id']);
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
         }
 
-        $employee->update($data);
+        // WRAPPED IN DATABASE TRANSACTION
+        DB::transaction(function () use ($request, $employee, $data) {
+            $employee->update($data);
+
+            // --- SMART SYNC: EDUCATIONS ---
+            $submittedEduIds = collect($request->educations)->pluck('id')->filter()->toArray();
+            $employee->educations()->whereNotIn('id', $submittedEduIds)->delete();
+            
+            if ($request->has('educations')) {
+                foreach ($request->educations as $edu) {
+                    if (!empty($edu['id'])) {
+                        $employee->educations()->where('id', $edu['id'])->update($edu);
+                    } else {
+                        $employee->educations()->create($edu);
+                    }
+                }
+            }
+
+            // --- SMART SYNC: EXPERIENCES ---
+            $submittedExpIds = collect($request->experiences)->pluck('id')->filter()->toArray();
+            $employee->experiences()->whereNotIn('id', $submittedExpIds)->delete();
+            
+            if ($request->has('experiences')) {
+                foreach ($request->experiences as $exp) {
+                    if (!empty($exp['id'])) {
+                        $employee->experiences()->where('id', $exp['id'])->update($exp);
+                    } else {
+                        $employee->experiences()->create($exp);
+                    }
+                }
+            }
+        });
 
         return redirect()->route('admin.employees.show', $employee->id)->with('success', 'Employee 360° profile updated!');
     }
@@ -215,7 +290,7 @@ class EmployeeController extends Controller
         return back()->with('success', 'Document deleted.');
     }
 
-    // --- 360° TIMELINE MILESTONES (Appraisals, Warnings, Promotions, Exit) ---
+    // --- 360° TIMELINE MILESTONES ---
     public function storeTimeline(Request $request, Employee $employee)
     {
         $request->validate([
@@ -233,7 +308,6 @@ class EmployeeController extends Controller
             'description' => $request->description,
         ]);
 
-        // If event is Exit, mark exit date
         if ($request->event_type === 'Exit') {
             $employee->update([
                 'exit_date' => $request->event_date,
@@ -256,7 +330,7 @@ class EmployeeController extends Controller
         if (!$employee->is_active) {
             return back()->with('error', 'Action Denied: Cannot assign assets to an inactive or suspended employee.');
         }
-        
+
         $request->validate([
             'asset_id' => 'required|exists:assets,id',
         ]);
@@ -303,13 +377,11 @@ class EmployeeController extends Controller
         $startOfYear = Carbon::now()->startOfYear();
         $endOfYear = Carbon::now()->endOfYear();
 
-        // Get Attendance Records
         $attendances = Attendance::with('shift')
             ->where('employee_id', $employee->id)
             ->whereBetween('attendance_date', [$startOfYear, $endOfYear])
             ->get();
 
-        // Get Holidays
         $holidays = \App\Models\Holiday::where('is_active', true)
             ->whereBetween('date', [$startOfYear, $endOfYear])
             ->get();
@@ -318,10 +390,10 @@ class EmployeeController extends Controller
 
         foreach ($attendances as $att) {
             $color = '#94a3b8';
-            if ($att->status == 'Present') $color = '#059669'; // Emerald
-            if ($att->status == 'Late') $color = '#e78b22'; // Amber
-            if ($att->status == 'Absent') $color = '#dc2626'; // Red
-            if ($att->status == 'Leave') $color = '#2563eb'; // Blue
+            if ($att->status == 'Present') $color = '#059669';
+            if ($att->status == 'Late') $color = '#e78b22';
+            if ($att->status == 'Absent') $color = '#dc2626';
+            if ($att->status == 'Leave') $color = '#2563eb';
 
             $calendarEvents[] = [
                 'id' => $att->id,
@@ -354,7 +426,6 @@ class EmployeeController extends Controller
             ];
         }
 
-        // Map Sundays (Weekly Offs)
         $currentSunday = clone $startOfYear;
         if (!$currentSunday->isSunday()) {
             $currentSunday->next(Carbon::SUNDAY);
