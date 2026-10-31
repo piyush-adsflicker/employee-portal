@@ -60,33 +60,45 @@
 
             <a href="{{ route('employee.dashboard') }}"
                 class="flex items-center gap-3 px-3 py-2.5 rounded-lg group transition-all {{ request()->routeIs('employee.dashboard') ? 'bg-teal-600 text-white shadow-md shadow-teal-500/20 font-bold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium' }}">
-                <i class="fa-solid fa-table-cells-large text-lg w-5 text-center transition-colors {{ request()->routeIs('employee.dashboard') ? 'text-white' : 'text-slate-400 group-hover:text-teal-600' }}"></i>
+                <i
+                    class="fa-solid fa-table-cells-large text-lg w-5 text-center transition-colors {{ request()->routeIs('employee.dashboard') ? 'text-white' : 'text-slate-400 group-hover:text-teal-600' }}"></i>
                 <span>Dashboard</span>
             </a>
 
             <a href="{{ route('employee.attendance.calendar') }}"
                 class="flex items-center gap-3 px-3 py-2.5 rounded-lg group transition-all {{ request()->routeIs('employee.attendance.calendar') ? 'bg-teal-600 text-white shadow-md shadow-teal-500/20 font-bold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium' }}">
-                <i class="fa-regular fa-calendar-days text-lg w-5 text-center transition-colors {{ request()->routeIs('employee.attendance.calendar') ? 'text-white' : 'text-slate-400 group-hover:text-teal-600' }}"></i>
+                <i
+                    class="fa-regular fa-calendar-days text-lg w-5 text-center transition-colors {{ request()->routeIs('employee.attendance.calendar') ? 'text-white' : 'text-slate-400 group-hover:text-teal-600' }}"></i>
                 <span>Attendance Calendar</span>
             </a>
 
             <a href="{{ route('employee.attendance.history') }}"
                 class="flex items-center gap-3 px-3 py-2.5 rounded-lg group transition-all {{ request()->routeIs('employee.attendance.history') ? 'bg-teal-600 text-white shadow-md shadow-teal-500/20 font-bold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium' }}">
-                <i class="fa-solid fa-clock-rotate-left text-lg w-5 text-center transition-colors {{ request()->routeIs('employee.attendance.history') ? 'text-white' : 'text-slate-400 group-hover:text-teal-600' }}"></i>
+                <i
+                    class="fa-solid fa-clock-rotate-left text-lg w-5 text-center transition-colors {{ request()->routeIs('employee.attendance.history') ? 'text-white' : 'text-slate-400 group-hover:text-teal-600' }}"></i>
                 <span>Attendance History</span>
             </a>
 
             <a href="{{ route('employee.leaves') }}"
                 class="flex items-center gap-3 px-3 py-2.5 rounded-lg group transition-all {{ request()->routeIs('employee.leaves') ? 'bg-teal-600 text-white shadow-md shadow-teal-500/20 font-bold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium' }}">
-                <i class="fa-solid fa-plane-departure text-lg w-5 text-center transition-colors {{ request()->routeIs('employee.leaves') ? 'text-white' : 'text-slate-400 group-hover:text-teal-600' }}"></i>
+                <i
+                    class="fa-solid fa-plane-departure text-lg w-5 text-center transition-colors {{ request()->routeIs('employee.leaves') ? 'text-white' : 'text-slate-400 group-hover:text-teal-600' }}"></i>
                 <span>Leave Application</span>
+            </a>
+
+            <a href="{{ route('employee.company-files') }}"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-lg group transition-all {{ request()->routeIs('employee.company-files') ? 'bg-teal-600 text-white shadow-md shadow-teal-500/20 font-bold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium' }}">
+                <i
+                    class="fa-solid fa-folder-open text-lg w-5 text-center transition-colors {{ request()->routeIs('employee.company-files') ? 'text-white' : 'text-slate-400 group-hover:text-teal-600' }}"></i>
+                <span>Company Files</span>
             </a>
 
             <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-6 mb-3 px-3">Account</div>
 
             <a href="{{ route('employee.profile') }}"
                 class="flex items-center gap-3 px-3 py-2.5 rounded-lg group transition-all {{ request()->routeIs('employee.profile') ? 'bg-teal-600 text-white shadow-md shadow-teal-500/20 font-bold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium' }}">
-                <i class="fa-solid fa-user text-lg w-5 text-center transition-colors {{ request()->routeIs('employee.profile') ? 'text-white' : 'text-slate-400 group-hover:text-teal-600' }}"></i>
+                <i
+                    class="fa-solid fa-user text-lg w-5 text-center transition-colors {{ request()->routeIs('employee.profile') ? 'text-white' : 'text-slate-400 group-hover:text-teal-600' }}"></i>
                 <span>My Profile</span>
             </a>
         </div>

@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
-<body class="bg-slate-50 flex flex-col min-h-screen font-sans text-slate-800 relative overflow-hidden">
+<body class="bg-slate-50 flex flex-col min-h-screen font-sans text-slate-800 relative overflow-x-hidden">
     
     <!-- Top Navigation -->
     <nav class="w-full px-6 py-4 md:px-12 flex items-center justify-between z-10">

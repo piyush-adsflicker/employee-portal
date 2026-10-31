@@ -8,9 +8,11 @@ use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\DesignationController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\HolidayController;
+use App\Http\Controllers\Admin\OrganizationFileController;
 use App\Http\Controllers\Admin\ShiftController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Employee\AttendanceController;
+use App\Http\Controllers\Employee\CompanyFileController;
 use App\Http\Controllers\Employee\EmpDashboardController;
 use App\Http\Controllers\Employee\LeaveController;
 use App\Http\Controllers\Employee\ProfileController;
@@ -81,6 +83,11 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     Route::post('/leaves/types', [AdminLeaveController::class, 'storeType'])->name('leaves.types.store');
     Route::post('/leaves/balances', [AdminLeaveController::class, 'updateBalance'])->name('leaves.balances.update');
     Route::put('/leaves/requests/{leaveRequest}', [AdminLeaveController::class, 'updateRequestStatus'])->name('leaves.requests.update');
+
+    Route::get('/organization-files', [OrganizationFileController::class, 'index'])->name('organization.files');
+    Route::post('/organization-files', [OrganizationFileController::class, 'store'])->name('organization.files.store');
+    Route::put('/organization-files/{organizationFile}', [OrganizationFileController::class, 'update'])->name('organization.files.update');
+    Route::delete('/organization-files/{organizationFile}', [OrganizationFileController::class, 'destroy'])->name('organization.files.destroy');
 });
 
 Route::middleware('guest')->group(function () {
@@ -110,4 +117,6 @@ Route::middleware('auth')->prefix('employee')->name('employee.')->group(function
     // Leave Application
     Route::get('/leaves', [LeaveController::class, 'index'])->name('leaves');
     Route::post('/leaves', [LeaveController::class, 'store'])->name('leaves.apply');
+
+    Route::get('/company-files', [CompanyFileController::class, 'index'])->name('company-files');
 });

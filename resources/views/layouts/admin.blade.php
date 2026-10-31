@@ -81,11 +81,16 @@
                 <i class="fa-solid fa-users text-lg w-5 text-center group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Employees</span>
             </a>
-
             <a href="{{ route('admin.assets.index') }}"
                 class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('admin.assets.*') ? 'bg-indigo-600/10 text-indigo-400' : 'hover:bg-slate-800 hover:text-white' }} rounded-lg group transition-colors">
                 <i class="fa-solid fa-laptop text-lg w-5 text-center group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Assets</span>
+            </a>
+            <a href="{{ route('admin.organization.files') }}"
+                class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('admin.organization.files') ? 'bg-indigo-600/10 text-indigo-400' : 'hover:bg-slate-800 hover:text-white' }} rounded-lg group transition-colors">
+                <i
+                    class="fa-solid fa-folder-open text-lg w-5 text-center group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Company Files</span>
             </a>
 
             <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-6 mb-2 px-2">Attendance</div>
